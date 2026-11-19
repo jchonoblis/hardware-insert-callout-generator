@@ -1,4 +1,4 @@
-# HW INSERT DWG CALLOUT GENERATOR
+# HARDWARE INSERT DWG CALLOUT GENERATOR
 
 Static web app (GitHub Pages ready) that builds ASME Y14.5-style drawing notes and a live, to-scale cross section for:
 

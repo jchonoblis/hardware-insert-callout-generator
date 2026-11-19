@@ -1,5 +1,5 @@
-import { APP_VERSION, threadList, materialList, HW_MAT_LABEL, DEFAULT_STATE, parseCSV, compute, encodeState, decodeState, stdThicknesses, stdName, dec } from './logic.js?v=1.8.1';
-import { drawSection, VB_W } from './drawing.js?v=1.8.1';
+import { APP_VERSION, threadList, materialList, HW_MAT_LABEL, DEFAULT_STATE, parseCSV, compute, encodeState, decodeState, stdThicknesses, stdName, dec } from './logic.js?v=1.8.2';
+import { drawSection, VB_W } from './drawing.js?v=1.8.2';
 
 const $ = id => document.getElementById(id);
 const form = $('form');

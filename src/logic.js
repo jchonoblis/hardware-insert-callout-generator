@@ -5,7 +5,8 @@
 // v1.7.7: nut INSTALL line prints "SHANK <code>" (word CODE removed).
 // Rule: every value printed in a note comes straight from a CSV row; nothing is computed into the note.
 
-export const APP_VERSION = "1.8.1";
+export const APP_VERSION = "1.8.2";
+// v1.8.2: app renamed HARDWARE INSERT DWG CALLOUT GENERATOR; repo and Pages URL renamed hardware-insert-dwg-callout-generator.
 // v1.8.1: 6-32 stud hole (.137-.140) uses #28 (.1405) inch drill instead of 3.5 mm; app renamed HW INSERT DWG CALLOUT GENERATOR.
 // v1.8.0: thread list and thread geometry come from threads.csv; material list comes from materials.csv.
 // Adds 6-32. Thread geometry is used only to draw the cross-section (never printed in a note).
