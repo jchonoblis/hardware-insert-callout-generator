@@ -1,7 +1,7 @@
 // To-scale cross-section renderer. Input: compute(...).geom. Output: SVG markup string.
 // World units are inches. z = depth from the install face into the substrate (0 = install face).
 // Near side: install face on top. Far side: drawing is flipped so the install face is at the bottom.
-import { cap3, fmtThk } from './logic.js?v=1.8.3';
+import { cap3, fmtThk } from './logic.js?v=1.9.0';
 
 export const VB_W = 760;
 let VB_H = 560;
@@ -12,7 +12,7 @@ const fT = v => fmtThk(v); // max 3 decimal places (v1.4)
 const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 export function drawSection(g, opts = {}) {
-  if (!g || !Number.isFinite(g.T) || g.T <= 0) return { svg: emptySvg('Enter a material thickness to draw the section.'), s: 0 };
+  if (!g || !Number.isFinite(g.T) || g.T <= 0) return { svg: emptySvg(opts?.empty || 'Enter a material thickness to draw the section.'), s: 0 };
   const T = g.T;
   // ---------- extents in z and r
   let zMin = 0, zMax = T, rMax;

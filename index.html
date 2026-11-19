@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=JetBrains+Mono:wght@400..700&display=swap" rel="stylesheet">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%226%22 fill=%22%231d4f8f%22/%3E%3Cpath d=%22M8 10h16M8 16h16M8 22h10%22 stroke=%22white%22 stroke-width=%222.5%22/%3E%3C/svg%3E">
-<link rel="stylesheet" href="styles.css?v=1.8.3">
+<link rel="stylesheet" href="styles.css?v=1.9.0">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -73,6 +73,7 @@
       <fieldset class="field">
         <legend>Thread</legend>
         <div class="seg seg-4" role="radiogroup" id="threads"></div>
+        <p class="hint" id="thread-hint"></p>
       </fieldset>
 
       <div class="field" data-for="clinch">
@@ -132,6 +133,7 @@
       <button type="button" class="btn-ghost" id="copy-link">Copy link</button>
       <span class="toast" id="toast" role="status"></span>
     </div>
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
     <div id="warnings" class="warnings"></div>
     <ul id="info" class="info" role="list"></ul>
     <details class="spec" open>
@@ -168,9 +170,9 @@
       <li><a href="data/hardware_pem_sp.csv" download>hardware_pem_sp.csv</a> PEM SP nuts, commercial only</li>
       <li><a href="data/hardware_pem_fh4.csv" download>hardware_pem_fh4.csv</a> PEM FH4 studs, commercial only</li>
       <li><a href="data/pem_fh_performance.csv" download>pem_fh_performance.csv</a> PEM FH/FHS stud push-out, torque-out and pull-thru averages</li>
-      <li><a href="data/hardware_stud_stack.csv" download>hardware_stud_stack.csv</a> stud length basis: NAS1149 CRES washer and MS21044C / MS17830-4C lock nut</li>
+      <li><a href="data/hardware_stud_stack.csv" download>hardware_stud_stack.csv</a> stud length basis: NAS1149 CRES washer and MS21044C / MS17830-4C / MS17830-5C lock nut</li>
       <li><a href="data/clinch_drills.csv" download>clinch_drills.csv</a> standard drill for each clinch nut and stud hole</li>
-      <li><a href="data/threads.csv" download>threads.csv</a> thread sizes offered in the app, major diameter, threads per inch and PEM thread code</li>
+      <li><a href="data/threads.csv" download>threads.csv</a> thread sizes offered in the app (5/16-24, 3/8-24 and 1/2-20 have inserts and clinch nuts, no studs; 5/16-18 is not offered), major diameter, threads per inch and PEM thread code</li>
       <li><a href="data/materials.csv" download>materials.csv</a> and <a href="data/sources.csv" download>sources.csv</a></li>
     </ul>
   </section>
@@ -181,7 +183,7 @@
     <p class="ver" id="ver"></p>
   </section>
 </footer>
-<script type="module" src="src/app.js?v=1.8.3"></script>
+<script type="module" src="src/app.js?v=1.9.0"></script>
 <script data-pplx-inline-edit>
 (function () {
   if (window === window.top) return;

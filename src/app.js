@@ -1,5 +1,5 @@
-import { APP_VERSION, threadList, materialList, HW_MAT_LABEL, DEFAULT_STATE, parseCSV, compute, encodeState, decodeState, stdThicknesses, stdName, dec } from './logic.js?v=1.8.3';
-import { drawSection, VB_W } from './drawing.js?v=1.8.3';
+import { APP_VERSION, threadList, threadTypes, pitchSwitch, materialList, HW_MAT_LABEL, DEFAULT_STATE, parseCSV, compute, encodeState, decodeState, stdThicknesses, stdName, dec } from './logic.js?v=1.9.0';
+import { drawSection, VB_W } from './drawing.js?v=1.9.0';
 
 const $ = id => document.getElementById(id);
 const form = $('form');
@@ -28,12 +28,13 @@ async function init() {
   $('material').innerHTML = materialList(data).map(m => `<option value="${m}">${m}</option>`).join('');
   $('threads').innerHTML = threadList(data).map(t => `<label><input type="radio" name="thread" value="${t}"><span>${t}</span></label>`).join('');
   try { state = { ...DEFAULT_STATE, ...decodeState(location.hash) }; } catch { state = { ...DEFAULT_STATE }; }
+  applyPitch(false);
   writeForm();
   update();
   form.addEventListener('input', onInput);
   form.addEventListener('change', onInput);
-  window.addEventListener('hashchange', () => { state = { ...DEFAULT_STATE, ...decodeState(location.hash) }; writeForm(); update(false); });
-  $('reset').addEventListener('click', () => { state = { ...DEFAULT_STATE }; writeForm(); update(); });
+  window.addEventListener('hashchange', () => { state = { ...DEFAULT_STATE, ...decodeState(location.hash) }; const sw = applyPitch(false); writeForm(); update(sw); });
+  $('reset').addEventListener('click', () => { state = { ...DEFAULT_STATE }; notice = ''; writeForm(); update(); });
   $('copy').addEventListener('click', () => copy(last?.noteText, 'Note copied'));
   $('copy-prep').addEventListener('click', () => copy(last?.prepText, 'Hole prep copied'));
   $('copy-link').addEventListener('click', () => copy(location.href, 'Link copied'));
@@ -56,7 +57,20 @@ function onInput(e) {
   state[t.name] = v;
   // Length choices depend on type, thread and hardware material, so reset to Auto when those change.
   if (state.type !== prevType || state.thread !== prevThread || state.hwmat !== prevMat) state.len = 'auto';
+  // A notice from a pitch switch stays until the next change the user makes.
+  notice = '';
+  if (state.type !== prevType && applyPitch(true)) writeForm();
   update();
+}
+
+// v1.9.0: move a removed 5/16-18 selection to 5/16-24 and tell the user. Returns true when the thread changed.
+let notice = '';
+function applyPitch(typeChanged) {
+  const sw = pitchSwitch(state, typeChanged);
+  if (!sw) return false;
+  Object.assign(state, sw.patch);
+  notice = sw.text;
+  return true;
 }
 
 function writeForm() {
@@ -76,6 +90,17 @@ function setVisibility() {
     el.hidden = !(f === t || (f === 'clinch' && t !== 'insert') || (f === 'insert-blind' && t === 'insert' && state.hole === 'blind'));
   });
   $('len-label').textContent = LEN_LABEL[t];
+  // v1.9.0: threads with no in-scope rows for the selected type (5/16-24, 3/8-24 and 1/2-20 for studs) are disabled.
+  // The current thread stays enabled so its warning and one-click fixes still show.
+  const off = [];
+  $('threads').querySelectorAll('input').forEach(i => {
+    const ok = threadTypes(i.value, data)[t];
+    if (!ok) off.push(i.value);
+    i.disabled = !ok && i.value !== state.thread;
+    i.closest('label').title = ok ? '' : `No ${t === 'insert' ? 'threaded' : 'clinch'} ${t} in this app for this thread`;
+  });
+  const list = off.length > 1 ? `${off.slice(0, -1).join(', ')} and ${off[off.length - 1]}` : off[0];
+  $('thread-hint').textContent = off.length ? `${list}: no ${t === 'insert' ? 'threaded' : 'clinch'} ${t} in this app.` : '';
 }
 
 function fillSelects(o) {
@@ -304,10 +329,16 @@ function update(pushHash = true) {
   else c.innerHTML = `<span class="ref-k">Commercial reference (${esc(o.commercial.brand || 'PEM')})</span><span class="ref-v">${o.commercial.pn ? esc(o.commercial.pn) : `No ${esc(o.commercial.brand || 'PEM')} equivalent`}</span>` +
     `<span class="basis">${o.commercial.pn ? 'Dimensional equivalent, reference only. Not part of the note; verify before substituting. ' : ''}${esc(o.commercial.basis || '')}</span>`;
   c.title = o.commercial?.basis || '';
+  // pitch-switch notice (information, not a compliance warning)
+  $('notice').textContent = notice;
+  $('notice').hidden = !notice;
   // warnings
   $('warnings').innerHTML = o.warnings.map((w, i) => `<div class="warn" role="alert"><strong>${w.level === 'caution' ? 'Caution' : 'Check'}</strong>${esc(w.text)}${w.actions.length ? `<div class="acts">${w.actions.map((a, j) => `<button type="button" data-w="${i}" data-a="${j}">${esc(a.label)}</button>`).join('')}</div>` : ''}</div>`).join('');
   $('warnings').querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    const prevType = state.type;
     Object.assign(state, o.warnings[b.dataset.w].actions[b.dataset.a].patch);
+    notice = '';
+    applyPitch(state.type !== prevType);
     writeForm(); update();
   }));
   $('info').innerHTML = o.info.map(t => `<li>${esc(t)}</li>`).join('');
@@ -323,7 +354,8 @@ function update(pushHash = true) {
     (o.row?.verification ? `<li class="ver">Verification: ${esc(o.row.verification)}</li>` : '');
   // graphic
   const title = `${state.type} ${state.thread} in ${state.material}, ${state.thk} in, ${state.side} side`;
-  const { svg, s } = drawSection(o.geom, { title });
+  const noData = !o.geom && o.warnings.some(w => w.noData);
+  const { svg, s } = drawSection(o.geom, { title, empty: noData ? `No ${state.type} data for ${state.thread}.` : '' });
   const g = $('gfx');
   g.outerHTML = svg.replace('<svg ', '<svg id="gfx" ');
   $('gfx').dataset.s = s;

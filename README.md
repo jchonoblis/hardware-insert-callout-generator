@@ -7,7 +7,7 @@ Static web app (GitHub Pages ready) that builds ASME Y14.5-style drawing notes a
 - Self-clinching flush-head studs: M63540/1 (MIL-S-63540/1A, now NASM63540/1)
 - Stainless-sheet clinch hardware with no mil PN (commercial only): PEM SP nuts and PEM FH4 studs, used for A304
 
-Threads: 4-40, 6-32, 8-32, 10-32, 1/4-20 (from `data/threads.csv`). Substrates: 5052-H32 (default), 6061-T6, A304 (annealed), A1008 CS Type B.
+Threads: 4-40, 6-32, 8-32, 10-32, 1/4-20, 5/16-24, 3/8-24, 1/2-20 (from `data/threads.csv`). 5/16-24, 3/8-24 and 1/2-20 offer threaded inserts and clinch nuts; no mil self-clinching stud exists in these threads. 5/16-18 is not offered for any hardware type; an old 5/16-18 link opens on 5/16-24 with a notice. Substrates: 5052-H32 (default), 6061-T6, A304 (annealed), A1008 CS Type B.
 
 ## How it works
 - Every value printed in a note comes straight from a CSV row in `data/`. Nothing is computed into the note.
@@ -29,6 +29,9 @@ Threads: 4-40, 6-32, 8-32, 10-32, 1/4-20 (from `data/threads.csv`). Substrates: 
 - Page stays still (v1.7.9): opening or picking from the quantity and thickness dropdowns scrolls only the list, never the page.
 - Dropdown wheel scrolling (v1.7.10): the thickness and quantity lists take mouse-wheel scrolling as soon as they open and do not pass it to the page.
 - 6-32 (v1.8.0): inserts, CRES nuts, CRES studs, PEM SP-632 nuts and FH4-632 studs, with the NAS1149CN632 washer and MS21044C06 nut for stud length. The thread list and thread geometry come from `data/threads.csv`; the substrate list comes from `data/materials.csv`.
+- 5/16-18 (v1.9.0): removed from the app for all hardware types. The verified rows stay as spec record with `in_app_scope` N: MS21208 inserts MS122082 to MS122242 in `data/hardware_ms21208.csv`, and M63540/1-51 to -56C studs in `data/hardware_m63540_1.csv` (MIL-S-63540/1A and Amendment 2 Table IV), with their drill, washer/nut stack and PEM performance rows. No 5/16-18 clinch nut exists (M45938/1 covers 5/16-24 only).
+- 5/16-24 (v1.9.0): MS21208 inserts MS124657, MS124697, MS124737, MS124777, MS124817 (MS21208F5-10 to -30; Heli-Coil 1191-5CN312 to -5CN938), drill 21/64 (Ø.3281), countersink Ø.360-.390 (NASM33537 Table IV). CRES clinch nuts M45938/1-21C (sheet .091-.124) and -22C (.125 up), hole .413 with drill Z, edge .375 (MIL-N-45938/1B); PEM CLS-0524 cross reference; commercial-only SP-0524-1/-2 for A304. No 5/16-24 clinch stud.
+- 3/8-24 and 1/2-20 (v1.9.0): MS21208 free-running tanged CRES helical inserts, 1D-3D. 3/8-24: MS124658, MS124698, MS124738, MS124778, MS124818 (MS21208F6-10 to -30), drill 25/64 (Ø.3906), countersink Ø.420-.450. 1/2-20: MS124660, MS124700, MS124740, MS124780, MS124820 (MS21208F8-10 to -30), drill 33/64 (Ø.5156), countersink Ø.560-.590. Clinch nuts: M45938/1-23C/-24C (3/8-24, drill 1/2) and -25C/-26C (1/2-20, drill 21/32) per MIL-N-45938/1B Table I, with PEM CLS-0624/-0820 cross references. In A304 sheet, 3/8-24 uses commercial-only PEM SP-0624-1/-2 (no mil equivalent); 1/2-20 has no SP nut, so it warns and recommends an insert. No mil or PEM stud is made in 3/8-24 or 1/2-20, so the thread buttons are disabled for studs; a shared link that selects one shows a warning with one-click fixes.
 - The selection lives in the URL hash, so a link reproduces a note.
 
 ## Run locally

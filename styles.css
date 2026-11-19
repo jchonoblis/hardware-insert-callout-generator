@@ -93,8 +93,14 @@ select:disabled { color: var(--color-text-faint); background: var(--color-surfac
 .seg span { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 40px; padding: var(--space-2) var(--space-2); font-size: var(--text-sm); text-align: center; line-height: 1.2; border-left: 1px solid var(--color-divider); cursor: pointer; }
 .seg label:first-child span { border-left: 0; }
 .seg input:hover + span { background: var(--color-surface-offset); }
+.seg input:disabled { cursor: not-allowed; }
+.seg input:disabled + span { color: var(--color-text-faint); background: var(--color-surface-offset); cursor: not-allowed; text-decoration: line-through; }
 .seg input:checked + span { background: var(--color-primary); color: #fff; font-weight: 600; }
 .seg input:focus-visible + span { outline: 2px solid var(--color-primary); outline-offset: -3px; }
+/* v1.9.0: seven thread sizes wrap into rows of four. */
+#threads { grid-auto-flow: row; grid-template-columns: repeat(4, 1fr); }
+#threads label:nth-child(4n+1) span { border-left: 0; }
+#threads label:nth-child(n+5) span { border-top: 1px solid var(--color-divider); }
 .seg-4 span { font-family: var(--font-mono); font-size: var(--text-xs); white-space: nowrap; padding-inline: var(--space-1); }
 .check { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); margin-top: var(--space-2); cursor: pointer; }
 .check input { width: 18px; height: 18px; accent-color: var(--color-primary); }
@@ -121,6 +127,8 @@ select:disabled { color: var(--color-text-faint); background: var(--color-surfac
 .commercial:empty { display: none; }
 .commercial .ref-v { font-family: var(--font-mono); overflow-wrap: anywhere; user-select: all; -webkit-user-select: all; cursor: text; }
 .commercial .basis { grid-column: 1 / -1; line-height: 1.45; }
+.notice { margin-top: var(--space-3); background: var(--color-primary-highlight); border: 1px solid color-mix(in oklab, var(--color-primary) 30%, transparent); color: var(--color-text); border-radius: var(--radius-md); padding: var(--space-2) var(--space-3); font-size: var(--text-sm); }
+.notice[hidden] { display: none; }
 .warnings { display: grid; gap: var(--space-2); margin-top: var(--space-3); }
 .warn { background: var(--color-warning-highlight); border: 1px solid color-mix(in oklab, var(--color-warning) 30%, transparent); color: var(--color-text); border-radius: var(--radius-md); padding: var(--space-3); font-size: var(--text-sm); }
 .warn strong { color: var(--color-warning); font-size: var(--text-xs); letter-spacing: .06em; text-transform: uppercase; display: block; margin-bottom: var(--space-1); }

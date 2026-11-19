@@ -4,3 +4,7 @@ thread,major_dia,tpi,series,pem_thread_code,in_app_scope,sources
 8-32,.164,32,UNC,832,Y,"S-NASM33537 T-I (major dia, tpi); S-PEMSS (PEM thread code)"
 10-32,.190,32,UNF,032,Y,"S-NASM33537 T-I (major dia, tpi); S-PEMSS (PEM thread code)"
 1/4-20,.250,20,UNC,0420,Y,"S-NASM33537 T-I (major dia, tpi); S-PEMSS (PEM thread code)"
+5/16-18,.3125,18,UNC,0518,N,"S-NASM33537 T-I (major dia, tpi); S-PEMFH (PEM thread code). Removed from the app (v1.9.0): not offered for any hardware type. Verified M63540/1-51 to -56 stud rows and MS21208 insert rows are kept as spec record (in_app_scope N); no mil clinch nut exists (M45938/1 5/16 nut is 5/16-24)"
+5/16-24,.3125,24,UNF,0524,Y,"S-NASM33537 T-I (major dia, tpi); S-PEMCL/S-PEMSS (PEM thread code). Inserts and clinch nuts (M45938/1-21/22, SP-0524); no mil clinch stud (M63540/1 5/16 stud is 5/16-18, not offered). Only 5/16 thread in the app"
+3/8-24,.375,24,UNF,0624,Y,"S-NASM33537 T-I (major dia, tpi); S-PEMCL/S-PEMSS (PEM thread code). Inserts and clinch nuts; no self-clinching stud exists (M63540/1 and PEM studs stop below 3/8-24)"
+1/2-20,.500,20,UNF,0820,Y,"S-NASM33537 T-I (major dia, tpi); S-PEMCL (PEM thread code). Inserts and clinch nuts; no self-clinching stud exists (M63540/1 and PEM studs stop below 1/2-20)"

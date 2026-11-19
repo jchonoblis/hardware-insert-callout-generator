@@ -3,9 +3,9 @@ S-NASM33537,"NASM33537 Insert, Screw Thread, Helical Coil, Inch Series, Assembly
 S-KATO,KATO Fastening - Superseded MS21208 cross reference to MS122xxx/MS124xxx,https://katofastening.com/inserts/Superseded-MS21208.html
 S-HC,"Heli-Coil catalog Table V (drill sizes, drill depth) and Table VII (countersink, tapping depth)",https://images.carid.com/heli-coil/pdf/heli-coil-catalog.pdf
 S-MS21208B,MS21208B (inactive for new design),https://everyspec.com/MS-Specs/MS2/MS21000-MS21999/download.php?spec=MS21208B.007863.PDF
-S-45938,"MIL-N-45938/1B (2 Oct 1984), S/S by NASM45938/1; Amendment 1 (16 May 1997) NOT reviewed",https://everyspec.com/MIL-SPECS/MIL-SPECS-MIL-N/download.php?spec=MIL-N-45938-1B.015001.PDF
-S-63540,"MIL-S-63540/1A (31 Mar 1986), S/S by NASM63540/1-2000",https://quicksearch.dla.mil/Transient/1A87E7725AC14821803BBEBDEE17B731.pdf
-S-PEMFH,"PEM FH/FHS/FHA flush-head stud data sheet (length datum, min sheet, HRB/HB pairs; FH/FHS performance data pg FH-29)",https://www.pemnet.com/wp-content/uploads/sites/2/2022/06/fhdata.pdf
+S-45938,"MIL-N-45938/1B (2 Oct 1984), S/S by NASM45938/1; Amendment 1 (16 May 1997) NOT reviewed. Table I/II dashes 1-29 used (5/16-24 = 21/22, 3/8-24 = 23/24, 1/2-20 = 25/26)",https://everyspec.com/MIL-SPECS/MIL-SPECS-MIL-N/download.php?spec=MIL-N-45938-1B.015001.PDF
+S-63540,"MIL-S-63540/1A (31 Mar 1986), S/S by NASM63540/1-2000. Largest stud thread is .313-18 (5/16-18, dashes 51-56); no 3/8 or 1/2 stud",https://quicksearch.dla.mil/Transient/9742AF5B77EC4A9C847027D395D0F533.pdf
+S-PEMFH,"PEM FH/FHS/FHA flush-head stud data sheet (length datum, min sheet, HRB/HB pairs; FH/FHS performance data pg FH-29). Largest inch studs: FH/FHS 5/16-18, HFH/HFHS 3/8-16; none in 3/8-24 or 1/2-20",https://www.pemnet.com/wp-content/uploads/sites/2/2022/06/fhdata.pdf
 S-UNICORP,"Unicorp CLS/CLA nut tables (PEM-equivalent edge distance, mil-spec cross ref)",https://www.unicorpinc.com/CLA_standard_nuts.htm
 S-CAGE-NUT,NSN 5310-00-567-4992: M45938/1-17C design control CAGE 80205; 81349 replaced,https://www.nsndepot.com/NSN/5310-00-567-4992
 S-CAGE-INS,NSN 5325-00-597-3302: MS124695 = MS21208F1-15; CAGE 80205 / 96906,https://www.wbparts.com/rfq/5325-00-597-3302.html
@@ -27,7 +27,7 @@ S-STK-CHSP,"Chatham Steel stainless plate table, Type 304/304L/316/316L hot roll
 S-STK-SHAW,"Shaw Steel gauge chart: Manufacturers' Standard Gauge nominal thickness for hot rolled, HRPO and cold rolled sheet",https://shawsteel.com/wp-content/uploads/2025/09/Shaw_Steel_Gauge_Chart_Final.pdf
 S-STK-RUSS,Russel Metals cold rolled sheet (A1008 CS): gauge and nominal thickness table,https://www.russelmetals.com/en/product/sheet-and-coil/cold-rolled/
 S-STK-WEST,Westfield Steel steel sheets: ASTM A1008 CS Type B stocked 24 gauge to 10 gauge,https://westfieldsteel.com/steel-sheets/
-S-NAS1149,"NAS1149 flat washer, Table I size and thickness codes (No. 4 N432, No. 6 N632, No. 8 N832) and thickness tolerance by material (CRES .032 +/-.004, .063 +/-.006); AN960C to NAS1149CN cross reference",https://www.aaestore.com.au/media/specs/NAS1149.pdf
+S-NAS1149,"NAS1149 flat washer, Table I size and thickness codes (No. 4 N432, No. 6 N632, No. 8 N832, 1/4 0463, 5/16 0563) and thickness tolerance by material (CRES .032 +/-.004, .063 +/-.006); AN960C to NAS1149CN cross reference",https://www.aaestore.com.au/media/specs/NAS1149.pdf
 S-MS21044,"MS21044 product index, CRES (C) height max/min: C04 .157/.133, C06 .188/.160, C08 .281/.219, C3 .281/.208 (Airfasco)",https://airfasco.com/products/MS/MS21044.php
 S-MS17830,"MS17830-4C 1/4-20 CRES self-locking nut, height .240-.360 (Military Fasteners)",https://military-fasteners.com/products/ms17830-4c-self-locking-hexagon-nut
 S-ASME-Y145,ASME Y14.5-2018 para 4.1(e): define the part without specifying manufacturing methods; only the hole diameter is given,https://archive.org/stream/asme-y-14.5-2018-dimensioning-and-tolerancing/ASME-Y14.5-2018-Dimensioning-and-Tolerancing_djvu.txt
@@ -35,3 +35,6 @@ S-HCXREF,"KATO Fastening Helicoil/Recoil cross reference, non-locking (MS122xxx/
 S-DRILL,"Travers Tool decimal equivalent chart: number, letter, fractional and metric drill decimal sizes (3.5 mm = .1378)",https://www.travers.com/resources/decimal-equivalent-chart
 S-PEMCL,"PEM CL/CLS/CLA/SP self-clinching nut data sheet (CL-2021): pg 4 S/CLS/SP inch table, pg 5 CLA inch table (hole, C, E, T, min dist hole C/L to edge)",https://www.pemnet.com/wp-content/uploads/sites/2/2022/06/cldata.pdf
 S-MCM-STUD,"McMaster-Carr self-clinching studs: FH-632 / FHS-632 hole .137 +.003/-.000, drill bit 3.5 mm",https://www.mcmaster.com/products/self-clinching-studs/
+S-UNICORP-CLS,"Unicorp CLS stainless nut table (PEM-equivalent dims, mil-spec cross ref: CLS-0624-2/-3 = M45938/1-23C/-24C, CLS-0820-1/-2 = M45938/1-25C/-26C)",https://www.unicorpinc.com/CLS_standard_nuts.htm
+S-63540-A2,"MIL-S-63540/1A Amendment 2 (Oct 1986): replaces Table IV, adds min sheet thickness column (.313-18: .093 min sheet, hole .311-.314, edge .375, nut torque 120 in-lb)",https://quicksearch.dla.mil/Transient/0B439AEFA8984CA79A5C0DECDDC1CF96.pdf
+S-MS17830-5,"MS17830-5C 5/16-18 CRES self-locking nut, height .271-.360 (Military Fasteners)",https://military-fasteners.com/products/ms17830-5c-self-locking-hexagon-nut

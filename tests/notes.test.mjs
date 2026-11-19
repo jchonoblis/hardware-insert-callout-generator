@@ -1,6 +1,6 @@
 // Golden-note tests: node tests/notes.test.mjs
 import { readFileSync } from 'node:fs';
-import { parseCSV, compute, threadList } from '../src/logic.js';
+import { parseCSV, compute, threadList, threadTypes, pitchSwitch } from '../src/logic.js';
 const rd = f => parseCSV(readFileSync(new URL('../data/' + f, import.meta.url), 'utf8'));
 const data = { inserts: rd('hardware_ms21208.csv'), nuts: [...rd('hardware_m45938_1.csv'), ...rd('hardware_pem_sp.csv')], studs: [...rd('hardware_m63540_1.csv'), ...rd('hardware_pem_fh4.csv')], materials: rd('materials.csv'), stack: rd('hardware_stud_stack.csv'), studPerf: rd('pem_fh_performance.csv'), clinchDrills: rd('clinch_drills.csv'), threads: rd('threads.csv') };
 let fail = 0;
@@ -124,7 +124,7 @@ import { round3, dec, cap3, holeSize, fmtThk } from '../src/logic.js';
   const ok = a && a[0].includes('FHS') && a[0].includes('Aluminum') && a[1] === '270 lb / 30 in-lb / 1220 lb' && b && b[0].includes('Steel') && b[1] === '575 lb / 100 in-lb / 2550 lb' && c && c[1] === '800 lb / 95 in-lb / 2250 lb';
   if (!ok) { fail++; console.log('FAIL stud PEM performance row', a, b, c); } else console.log('ok   stud spec values show PEM push-out / torque-out / pull-thru'); }
 // v1.8.0: 6-32 added; thread list comes from threads.csv
-{ const ok = threadList(data).join(',') === '4-40,6-32,8-32,10-32,1/4-20';
+{ const ok = threadList(data).join(',') === '4-40,6-32,8-32,10-32,1/4-20,5/16-24,3/8-24,1/2-20';
   if (!ok) { fail++; console.log('FAIL thread list from threads.csv', threadList(data)); } else console.log('ok   thread list from threads.csv includes 6-32'); }
 check('insert 6-32 6061 .250 thru', { thread: '6-32', thk: '0.250' },
   ['4X DRILL #26 (\u00d8.147) THRU', '<HOLE-SINK>\u00d8.180-.210 X 120\u00b0', 'TAP 6-32 STI THRU', 'INSTALL 6-32 X .207 THREADED INSERT', 'BREAK TANG', 'PN: MS122118 UNCOATED', 'CAGE: 80205', 'NEAR SIDE']);
@@ -136,4 +136,77 @@ check('stud 6-32 5052 .090 -> #28 drill, M63540/1-14C, MS21044C06 stack', { type
   ['4X DRILL #28 (\u00d8.141) THRU', 'INSTALL 6-32 X .500 SELF-CLINCHING STUD', 'PN: M63540/1-14C', 'CAGE: 80205', 'NEAR SIDE FLUSH'], o => o.info.some(t => t.includes('MS21044C06')));
 check('stud 6-32 A304 .063 -> FH4-632-6', { type: 'stud', thread: '6-32', material: 'A304 (annealed)', thk: '0.063' },
   ['4X DRILL #28 (\u00d8.141) THRU', 'INSTALL 6-32 X .375 SELF-CLINCHING STUD', 'PN: FH4-632-6', 'CAGE: 46384', 'NEAR SIDE FLUSH']);
+// v1.9.0: 3/8-24 and 1/2-20 helical inserts (NASM33537 Table IV p9/p10, Heli-Coil Table V, KATO cross reference)
+const D = '\u00d8', S = '<HOLE-SINK>', H = '<HOLE-DEPTH>', DEG = '\u00b0';
+check('insert 3/8-24 6061 .500 thru -> 1D MS124658', { thread: '3/8-24', thk: '0.500' },
+  [`4X DRILL 25/64 (${D}.391) THRU`, `${S}${D}.420-.450 X 120${DEG}`, 'TAP 3/8-24 STI THRU', 'INSTALL 3/8-24 X .375 THREADED INSERT', 'BREAK TANG', 'PN: MS124658 UNCOATED', 'CAGE: 80205', 'NEAR SIDE'], o => !o.nonCompliant && o.commercial.pn === '1191-6CN375');
+check('insert 3/8-24 1.500 blind plug -> 3D MS124818', { thread: '3/8-24', thk: '1.500', hole: 'blind', qty: '2' },
+  [`2X DRILL 25/64 (${D}.391) ${H}1.375 MIN`, `${S}${D}.420-.450 X 120${DEG}`, `TAP 3/8-24 STI ${H}1.170 MIN FULL THREAD`, 'INSTALL 3/8-24 X 1.125 THREADED INSERT', 'BREAK TANG', 'PN: MS124818 UNCOATED', 'CAGE: 80205', 'NEAR SIDE'], o => !o.nonCompliant && o.commercial.pn === '1191-6CN1125');
+check('insert 3/8-24 2.5D bottoming depth 1.104, plug 1.187', { thread: '3/8-24', thk: '2.000', hole: 'blind', tap: 'bottoming', len: '2.5' },
+  [`4X DRILL 25/64 (${D}.391) ${H}1.104 MIN`, `${S}${D}.420-.450 X 120${DEG}`, `TAP 3/8-24 STI ${H}.980 MIN FULL THREAD`, 'INSTALL 3/8-24 X .938 THREADED INSERT', 'BREAK TANG', 'PN: MS124778 UNCOATED', 'CAGE: 80205', 'NEAR SIDE'], o => o.row.min_drill_depth_plug_tap_FP === '1.187');
+check('insert 1/2-20 A304 1.000 thru legacy far -> 1.5D MS21208F8-15', { thread: '1/2-20', material: 'A304 (annealed)', thk: '1.000', pnmode: 'legacy', side: 'far', qty: '1' },
+  [`DRILL 33/64 (${D}.516) THRU`, `${S}${D}.560-.590 X 120${DEG}`, 'TAP 1/2-20 STI THRU', 'INSTALL 1/2-20 X .750 THREADED INSERT', 'BREAK TANG', 'PN: MS21208F8-15 UNCOATED', 'CAGE: 96906', 'FAR SIDE'], o => !o.nonCompliant);
+check('insert 1/2-20 5052 .500 thru -> no length fits (1D needs .550)', { thread: '1/2-20', material: '5052-H32', thk: '0.500' },
+  [`4X DRILL 33/64 (${D}.516) THRU`, `${S}${D}.560-.590 X 120${DEG}`, 'TAP 1/2-20 STI THRU', 'INSTALL 1/2-20 X .500 THREADED INSERT', 'BREAK TANG', 'PN: MS124660 UNCOATED', 'CAGE: 80205', 'NEAR SIDE'], o => o.nonCompliant && o.warnings[0].text.includes('.550'));
+check('insert 1/2-20 2.000 thru -> 3D MS124820', { thread: '1/2-20', thk: '2.000' },
+  [`4X DRILL 33/64 (${D}.516) THRU`, `${S}${D}.560-.590 X 120${DEG}`, 'TAP 1/2-20 STI THRU', 'INSTALL 1/2-20 X 1.500 THREADED INSERT', 'BREAK TANG', 'PN: MS124820 UNCOATED', 'CAGE: 80205', 'NEAR SIDE'], o => o.commercial.pn === '1191-8CN1500');
+for (const thread of ['3/8-24', '1/2-20']) {
+  const o = compute({ ...BASE, type: 'stud', thread, thk: '0.090' }, data);
+  const w = o.warnings[0];
+  const ok = o.noteText === '' && o.nonCompliant && w.noData && w.text.includes('No ' + thread + ' self-clinching stud exists') && w.text.includes('5/16-18') && w.actions.some(a => a.patch.type === 'insert') && w.actions.some(a => a.patch.type === 'nut') && w.actions.some(a => a.patch.thread === '1/4-20');
+  if (!ok) { fail++; console.log('FAIL no-stud thread', thread, o.warnings); } else console.log(`ok   stud ${thread}: none exists, warns, offers insert, nut or 1/4-20`);
+}
+{ const t = threadTypes('3/8-24', data), v = threadTypes('1/2-20', data), u = threadTypes('1/4-20', data);
+  const ok = t.insert && t.nut && !t.stud && v.insert && v.nut && !v.stud && u.insert && u.nut && u.stud;
+  if (!ok) { fail++; console.log('FAIL threadTypes', t, v, u); } else console.log('ok   threadTypes: 3/8-24 and 1/2-20 insert + nut, no stud; 1/4-20 all types'); }
+// v1.9.0: 3/8-24 and 1/2-20 clinch nuts (MIL-N-45938/1B Table I dashes 23-26; PEM CL CLS-0624/-0820; PEM SP-0624 for stainless)
+check('nut 3/8-24 5052 .125 -> M45938/1-23C', { type: 'nut', thread: '3/8-24', material: '5052-H32', thk: '0.125' },
+  [`4X DRILL 1/2 (${D}.500) THRU`, 'INSTALL 3/8-24 SHANK 2 SELF-CLINCHING NUT', 'PN: M45938/1-23C', 'CAGE: 80205', 'NEAR SIDE'], o => !o.nonCompliant && !o.commercialOnly && o.commercial.pn === 'CLS-0624-2');
+check('nut 3/8-24 .250 -> M45938/1-24C', { type: 'nut', thread: '3/8-24', thk: '0.250' },
+  [`4X DRILL 1/2 (${D}.500) THRU`, 'INSTALL 3/8-24 SHANK 3 SELF-CLINCHING NUT', 'PN: M45938/1-24C', 'CAGE: 80205', 'NEAR SIDE'], o => !o.nonCompliant && o.commercial.pn === 'CLS-0624-3');
+check('nut 1/2-20 .125 -> M45938/1-25C, 21/32 drill', { type: 'nut', thread: '1/2-20', thk: '0.125' },
+  [`4X DRILL 21/32 (${D}.656) THRU`, 'INSTALL 1/2-20 SHANK 1 SELF-CLINCHING NUT', 'PN: M45938/1-25C', 'CAGE: 80205', 'NEAR SIDE'], o => !o.nonCompliant && o.commercial.pn === 'CLS-0820-1');
+check('nut 1/2-20 .250 far -> M45938/1-26C', { type: 'nut', thread: '1/2-20', thk: '0.250', side: 'far' },
+  [`4X DRILL 21/32 (${D}.656) THRU`, 'INSTALL 1/2-20 SHANK 2 SELF-CLINCHING NUT', 'PN: M45938/1-26C', 'CAGE: 80205', 'FAR SIDE'], o => !o.nonCompliant && o.commercial.pn === 'CLS-0820-2');
+check('nut 3/8-24 A304 .125 -> SP-0624-2 commercial-only', { type: 'nut', thread: '3/8-24', material: 'A304 (annealed)', thk: '0.125' },
+  [`4X DRILL 1/2 (${D}.500) THRU`, 'INSTALL 3/8-24 SHANK 2 SELF-CLINCHING NUT', 'PN: SP-0624-2', 'CAGE: 46384', 'NEAR SIDE'], o => o.commercialOnly && o.commercial.isNotePN);
+check('nut 3/8-24 A304 .090 -> SP-0624-1', { type: 'nut', thread: '3/8-24', material: 'A304 (annealed)', thk: '0.090', qty: '1' },
+  [`DRILL 1/2 (${D}.500) THRU`, 'INSTALL 3/8-24 SHANK 1 SELF-CLINCHING NUT', 'PN: SP-0624-1', 'CAGE: 46384', 'NEAR SIDE'], o => o.commercialOnly);
+{ const o = compute({ ...BASE, type: 'nut', thread: '1/2-20', material: 'A304 (annealed)', thk: '0.125' }, data);
+  const ok = o.nonCompliant && o.warnings.some(w => w.actions.some(a => a.patch.type === 'insert'));
+  if (!ok) { fail++; console.log('FAIL nut 1/2-20 A304', o.noteText, o.warnings); } else console.log('ok   nut 1/2-20 A304: no SP in 1/2-20, warns and offers insert'); }
+{ const o = compute({ ...BASE, type: 'nut', thread: '3/8-24', thk: '0.090' }, data);
+  const ok = o.nonCompliant && o.warnings.some(w => w.text.includes('.125'));
+  if (!ok) { fail++; console.log('FAIL nut 3/8-24 .090 below min', o.noteText, o.warnings); } else console.log('ok   nut 3/8-24 6061 .090: below .125 mil minimum, warns'); }
+
+// v1.9.0: 5/16-18 removed from the app for every hardware type; verified rows kept as spec record (in_app_scope N)
+{ const t = threadTypes('5/16-18', data), rows = [...data.inserts, ...data.nuts, ...data.studs].filter(r => r.thread === '5/16-18');
+  const ok = !threadList(data).includes('5/16-18') && !t.insert && !t.nut && !t.stud && rows.length === 17 && rows.every(r => r.in_app_scope === 'N');
+  if (!ok) { fail++; console.log('FAIL 5/16-18 removed', t, rows.length); } else console.log('ok   5/16-18 removed from thread list; 5 insert + 12 stud rows kept as spec record'); }
+// v1.9.0: 5/16-24 nuts and inserts (MIL-N-45938/1B dashes 21/22, NASM33537 Table IV .3125-24) and the 5/16 pitch switch
+const gold = (name, st, exp, extra = () => true) => {
+  const o = compute({ ...BASE, ...st }, data);
+  if (o.noteText !== exp || !extra(o)) { fail++; console.log('FAIL ' + name, o.noteText, o.warnings); } else console.log('ok   ' + name);
+};
+gold('nut 5/16-24 .100 -> M45938/1-21C, drill Z', { type: 'nut', thread: '5/16-24', thk: '0.100' },
+  '4X DRILL Z (\u00d8.413) THRU\nINSTALL 5/16-24 SHANK 2 SELF-CLINCHING NUT\nPN: M45938/1-21C\nCAGE: 80205\nNEAR SIDE', o => !o.warnings.length && o.commercial.pn === 'CLS-0524-2');
+gold('nut 5/16-24 .125 -> M45938/1-22C', { type: 'nut', thread: '5/16-24', thk: '0.125' },
+  '4X DRILL Z (\u00d8.413) THRU\nINSTALL 5/16-24 SHANK 3 SELF-CLINCHING NUT\nPN: M45938/1-22C\nCAGE: 80205\nNEAR SIDE', o => o.commercial.pn === 'CLS-0524-3');
+gold('nut 5/16-24 A304 .060 -> commercial SP-0524-1', { type: 'nut', thread: '5/16-24', thk: '0.060', material: 'A304 (annealed)' },
+  '4X DRILL Z (\u00d8.413) THRU\nINSTALL 5/16-24 SHANK 1 SELF-CLINCHING NUT\nPN: SP-0524-1\nCAGE: 46384\nNEAR SIDE', o => o.commercialOnly);
+gold('insert 5/16-24 .500 thru -> 1D MS124657', { type: 'insert', thread: '5/16-24', thk: '0.500' },
+  '4X DRILL 21/64 (\u00d8.328) THRU\n<HOLE-SINK>\u00d8.360-.390 X 120\u00b0\nTAP 5/16-24 STI THRU\nINSTALL 5/16-24 X .312 THREADED INSERT\nBREAK TANG\nPN: MS124657 UNCOATED\nCAGE: 80205\nNEAR SIDE', o => o.commercial.pn === '1191-5CN312');
+gold('insert 5/16-24 1.500 blind -> 3D MS124817', { type: 'insert', thread: '5/16-24', thk: '1.500', hole: 'blind' },
+  '4X DRILL 21/64 (\u00d8.328) <HOLE-DEPTH>1.342 MIN\n<HOLE-SINK>\u00d8.360-.390 X 120\u00b0\nTAP 5/16-24 STI <HOLE-DEPTH>.980 MIN FULL THREAD\nINSTALL 5/16-24 X .938 THREADED INSERT\nBREAK TANG\nPN: MS124817 UNCOATED\nCAGE: 80205\nNEAR SIDE');
+{ const t = threadTypes('5/16-24', data), o = compute({ ...BASE, type: 'stud', thread: '5/16-24', thk: '0.125' }, data), w = o.warnings[0];
+  const ok = t.insert && t.nut && !t.stud && o.noteText === '' && w.noData && w.text.includes('M63540/1 covers 5/16-18 only') && w.actions.some(a => a.patch.thread === '1/4-20') && !w.actions.some(a => a.patch.thread === '5/16-18');
+  if (!ok) { fail++; console.log('FAIL stud 5/16-24', t, o.warnings); } else console.log('ok   stud 5/16-24: none exists, warns, offers 1/4-20'); }
+{ const cases = [
+    [{ type: 'stud', thread: '5/16-18' }, true], [{ type: 'stud', thread: '5/16-18' }, false], [{ type: 'nut', thread: '5/16-18' }, true],
+    [{ type: 'insert', thread: '5/16-18' }, false]];
+  const none = [{ type: 'stud', thread: '5/16-24' }, { type: 'nut', thread: '5/16-24' }, { type: 'insert', thread: '5/16-24' }, { type: 'stud', thread: '1/4-20' }];
+  const bad = [...cases.filter(([st, tc]) => { const r = pitchSwitch(st, tc); return !(r && r.patch.thread === '5/16-24' && r.text.startsWith('Thread pitch changed from 5/16-18 to 5/16-24. 5/16-18 is not offered')); }),
+    ...none.filter(st => pitchSwitch(st, true) !== null)];
+  if (bad.length) { fail++; console.log('FAIL pitchSwitch', bad); } else console.log('ok   5/16-18 links move to 5/16-24 with notice; no other switching'); }
+
 if (fail) { console.log(fail + ' failed'); process.exitCode = 1; } else console.log('all passed');

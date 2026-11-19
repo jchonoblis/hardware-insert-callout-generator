@@ -5,13 +5,55 @@
 // v1.7.7: nut INSTALL line prints "SHANK <code>" (word CODE removed).
 // Rule: every value printed in a note comes straight from a CSV row; nothing is computed into the note.
 
-export const APP_VERSION = "1.8.3";
+export const APP_VERSION = "1.9.0";
+// v1.9.0: adds 3/8-24 and 1/2-20 helical inserts (MS124658-MS124818, MS124660-MS124820; NASM33537 Table IV, Heli-Coil Table V)
+// 5/16-24 inserts and clinch nuts; 5/16-18 removed from the app (its verified insert and stud rows are kept as spec record),
+// and clinch nuts: mil CRES M45938/1-23C/-24C (3/8-24) and -25C/-26C (1/2-20) per MIL-N-45938/1B, plus commercial-only
+// PEM SP-0624-1/-2 for stainless sheet (no SP in 1/2-20). No self-clinching stud exists in either thread, so studs warn.
 // v1.8.3: app renamed HARDWARE INSERT CALLOUT GENERATOR; repo and Pages URL renamed hardware-insert-callout-generator.
 // v1.8.2: app renamed HARDWARE INSERT DWG CALLOUT GENERATOR; repo and Pages URL renamed hardware-insert-dwg-callout-generator.
 // v1.8.1: 6-32 stud hole (.137-.140) uses #28 (.1405) inch drill instead of 3.5 mm; app renamed HW INSERT DWG CALLOUT GENERATOR.
 // v1.8.0: thread list and thread geometry come from threads.csv; material list comes from materials.csv.
 // Adds 6-32. Thread geometry is used only to draw the cross-section (never printed in a note).
 export function threadList(data) { return (data.threads || []).filter(r => r.in_app_scope === 'Y').map(r => r.thread); }
+// Which hardware types have in-scope rows for a thread (v1.9.0). 3/8-24, 1/2-20 and 5/16-24 have no studs. 5/16-18 is not in the thread list.
+export function threadTypes(thread, data) {
+  const has = rows => (rows || []).some(r => r.thread === thread && r.in_app_scope === 'Y');
+  return { insert: has(data.inserts), nut: has(data.nuts), stud: has(data.studs) };
+}
+function insertOnlyWarning(s, data, kind) {
+  // Nearest smaller and larger threads that have this hardware type.
+  const list = threadList(data), at = list.indexOf(s.thread), okT = t => threadTypes(t, data)[kind];
+  const lo = list.slice(0, Math.max(at, 0)).filter(okT).pop(), hi = at >= 0 ? list.slice(at + 1).find(okT) : undefined;
+  const alts = [lo, hi].filter(Boolean);
+  const types = threadTypes(s.thread, data);
+  // v1.9.0: 3/8-24 and 1/2-20 have inserts and clinch nuts but no clinch stud. No mil stud (MIL-S-63540/1A and
+  // NASM63540/1 stop at 5/16-18) and no PEM stud (FH/FHS stop at 5/16-18, HFH/HFHS at 3/8-16) is made in these threads.
+  // v1.9.0: 5/16-18 is removed from the app; the 5/16-18 texts below only show for an old state that bypasses pitchSwitch().
+  const why = s.thread === '5/16-18' && kind === 'nut'
+    ? 'No mil 5/16-18 clinch nut exists (M45938/1 covers 5/16-24 only), and commercial PEM 0518 nuts are not in this app\'s data.'
+    : s.thread === '5/16-24' && kind === 'stud'
+    ? 'No mil 5/16-24 clinch stud exists (M63540/1 covers 5/16-18 only, which is not offered in this app).'
+    : kind === 'stud'
+      ? `No ${s.thread} self-clinching stud exists: M63540/1 (NASM63540/1) studs stop at 5/16-18, and PEM studs (no mil equivalent) stop at 3/8-16.`
+      : `No ${s.thread} clinch ${kind} is in this app's data.`;
+  const altTxt = alts.length ? ` Nearest ${kind} sizes in this app: ${alts.join(' and ')}.` : '';
+  return {
+    noData: true,
+    text: `${why}${altTxt} Use a threaded insert${types.nut && kind !== 'nut' ? ', a clinch nut' : ''} or another thread.`,
+    actions: [{ label: 'Use threaded insert instead', patch: { type: 'insert', len: 'auto', hwmat: 'auto' } },
+      ...(types.nut && kind !== 'nut' ? [{ label: 'Use clinch nut instead', patch: { type: 'nut', len: 'auto', hwmat: 'auto' } }] : []),
+      ...alts.map(t => ({ label: `Use ${t}`, patch: { thread: t, len: 'auto' } }))],
+  };
+}
+// v1.9.0: 5/16-18 was removed from the app for every hardware type (verified rows kept as spec record, in_app_scope N);
+// 5/16-24 is the only 5/16 thread. An old link or saved state with 5/16-18 is moved to 5/16-24 with a notice.
+// Returns the patch and a user notice, or null. typeChanged is kept for callers.
+export function pitchSwitch(s, typeChanged) {
+  if (s.thread !== '5/16-18') return null;
+  return { patch: { thread: '5/16-24', len: 'auto' }, text: 'Thread pitch changed from 5/16-18 to 5/16-24. 5/16-18 is not offered in this app.' };
+}
+
 export function materialList(data) { return (data.materials || []).map(r => r.material); }
 export function threadGeom(thread, data) {
   const r = (data.threads || []).find(t => t.thread === thread);
@@ -206,7 +248,13 @@ function pnFor(row, s) {
 function computeInsert(s, data, mat, T, validT, q, sideWord, out) {
   const rows = data.inserts.filter(r => r.thread === s.thread && r.in_app_scope === 'Y')
     .sort((a, b) => num(a.length_dia_mult) - num(b.length_dia_mult));
-  if (!rows.length) { out.warnings.push({ text: `No confirmed insert data for ${s.thread}.`, actions: [] }); return; }
+  if (!rows.length) {
+    // v1.9.0: 5/16-18 inserts were removed from the app; 5/16-24 is the only 5/16 insert.
+    out.warnings.push(s.thread === '5/16-18'
+      ? { noData: true, text: '5/16-18 threaded inserts are not offered in this app; inserts use 5/16-24.', actions: [{ label: 'Use 5/16-24', patch: { thread: '5/16-24', len: 'auto' } }] }
+      : { text: `No confirmed insert data for ${s.thread}.`, actions: [] });
+    return;
+  }
   const drillCol = mat && mat.insert_drill_column === 'steel' ? 'drill_steel' : 'drill_aluminum';
   const depthCol = s.tap === 'bottoming' ? 'min_drill_depth_bottoming_tap_FB' : 'min_drill_depth_plug_tap_FP';
   // Blind-hole fit: the 118 deg drill point must stay inside the material. MIN DEPTH is the full-diameter
@@ -321,7 +369,7 @@ function hwName(key, fam) {
   return HW_MAT_LABEL[key];
 }
 
-function hardnessWarning(s, mat, family, pick, rowLimit, out) {
+function hardnessWarning(s, mat, family, pick, rowLimit, out, avail = HW_ALLOWED) {
   const fam = family === 'm45938' ? 'nut' : 'stud';
   const rule = String(mat?.[`${family}_${pick.key}`] || '');
   if (pick.ok) {
@@ -331,7 +379,8 @@ function hardnessWarning(s, mat, family, pick, rowLimit, out) {
     }
     return;
   }
-  const anyOk = HW_ALLOWED.some(k => String(mat?.[`${family}_${k}`] || '').startsWith('OK'));
+  // Only variants that exist in this thread count (e.g. PEM FH4 is rated for A304 but not made in 5/16-18).
+  const anyOk = avail.some(k => String(mat?.[`${family}_${k}`] || '').startsWith('OK'));
   const acts = [];
   if (anyOk && !pick.auto) acts.push({ label: 'Auto-select hardware material', patch: { hwmat: 'auto' } });
   if (!anyOk) acts.push({ label: 'Use threaded insert instead', patch: { type: 'insert', len: 'auto', hwmat: 'auto' } });
@@ -358,7 +407,7 @@ function commercialOnlyInfo(row, fam, out) {
 
 function computeNut(s, data, mat, T, validT, q, sideWord, out) {
   const all = data.nuts.filter(r => r.thread === s.thread && r.in_app_scope === 'Y');
-  if (!all.length) { out.warnings.push({ text: `No confirmed nut data for ${s.thread}.`, actions: [] }); return; }
+  if (!all.length) { out.warnings.push(insertOnlyWarning(s, data, 'nut')); return; }
   const avail = [...new Set(all.map(r => hwMatKey(r.material)))].filter(k => HW_ALLOWED.includes(k));
   const pick = pickHwMat(s, mat, 'm45938', avail);
   out.hwmatChosen = pick.key; out.hwmatAvail = avail;
@@ -374,7 +423,7 @@ function computeNut(s, data, mat, T, validT, q, sideWord, out) {
     : pick.caution
       ? `${pick.auto ? 'Auto: ' : ''}${pick.key === 'pem' ? hwName('pem', 'nut') + ', commercial only' : HW_MAT_LABEL[pick.key]} (rated to ${row.max_sheet_hardness_HRB} HRB; ${s.material} ${hardnessText(mat)}): confirm sheet hardness`
       : `${HW_MAT_LABEL[pick.key]} not rated for ${s.material}`;
-  hardnessWarning(s, mat, 'm45938', pick, row.max_sheet_hardness_HRB, out);
+  hardnessWarning(s, mat, 'm45938', pick, row.max_sheet_hardness_HRB, out, avail);
 
   if (validT && !match) {
     const minT = num(rows[0].sheet_thk_min);
@@ -429,7 +478,7 @@ function studPerfRow(row, mat, data) {
 
 function computeStud(s, data, mat, T, validT, q, sideWord, out) {
   const all = data.studs.filter(r => r.thread === s.thread && r.in_app_scope === 'Y');
-  if (!all.length) { out.warnings.push({ text: `No confirmed stud data for ${s.thread}.`, actions: [] }); return; }
+  if (!all.length) { out.warnings.push(insertOnlyWarning(s, data, 'stud')); return; }
   const avail = [...new Set(all.map(r => hwMatKey(r.material)))].filter(k => HW_ALLOWED.includes(k));
   const pick = pickHwMat(s, mat, 'm63540', avail);
   out.hwmatChosen = pick.key; out.hwmatAvail = avail;
@@ -456,7 +505,7 @@ function computeStud(s, data, mat, T, validT, q, sideWord, out) {
     : pick.caution
       ? `${pick.auto ? 'Auto: ' : ''}${pick.key === 'pem' ? hwName('pem', 'stud') + ', commercial only' : HW_MAT_LABEL[pick.key]} (rated to ${row.max_sheet_hardness_HRB} HRB; ${s.material} ${hardnessText(mat)}): confirm sheet hardness`
       : `${HW_MAT_LABEL[pick.key]} not rated for ${s.material}`;
-  hardnessWarning(s, mat, 'm63540', pick, row.max_sheet_hardness_HRB, out);
+  hardnessWarning(s, mat, 'm63540', pick, row.max_sheet_hardness_HRB, out, avail);
   if (validT && T < num(row.min_sheet_thk)) {
     out.warnings.push({ text: `${fmtThk(T)} in is below the minimum sheet thickness (${row.min_sheet_thk}) for ${s.thread} studs.`, actions: [stdSuggest(mat, t => t >= num(row.min_sheet_thk) && (!row.sheet_thk_max || t <= num(row.sheet_thk_max)), '0' + row.min_sheet_thk)] });
   }

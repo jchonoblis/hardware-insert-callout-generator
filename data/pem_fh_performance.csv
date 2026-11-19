@@ -23,3 +23,7 @@ thread_code,threads,type,test_sheet,sheet_family,test_sheet_HRB,nut_tightening_t
 0420,1/4-20,FHS,.093 Aluminum,aluminum,28,55,6500,310,65,2100,S-PEMFH
 0420,1/4-20,FH,.088 Steel,steel,46,77,9500,575,100,2550,S-PEMFH
 0420,1/4-20,FHS,.088 Steel,steel,46,67,10000,575,100,2550,S-PEMFH
+0518,5/16-18,FH,.093 Aluminum,aluminum,28,85,6500,430,100,2260,S-PEMFH
+0518,5/16-18,FHS,.093 Aluminum,aluminum,28,74,6700,430,100,2260,S-PEMFH
+0518,5/16-18,FH,.093 Steel,steel,46,130,10000,650,175,3475,S-PEMFH
+0518,5/16-18,FHS,.093 Steel,steel,46,102,11200,650,175,3120,S-PEMFH
