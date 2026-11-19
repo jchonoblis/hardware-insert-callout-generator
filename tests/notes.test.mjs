@@ -132,8 +132,8 @@ check('nut 6-32 5052 .063 -> M45938/1-9C', { type: 'nut', thread: '6-32', materi
   ['4X DRILL 3/16 (\u00d8.188) THRU', 'INSTALL 6-32 SHANK 2 SELF-CLINCHING NUT', 'PN: M45938/1-9C', 'CAGE: 80205', 'NEAR SIDE']);
 check('nut 6-32 A304 .063 -> SP-632-2', { type: 'nut', thread: '6-32', material: 'A304 (annealed)', thk: '0.063' },
   ['4X DRILL 3/16 (\u00d8.188) THRU', 'INSTALL 6-32 SHANK 2 SELF-CLINCHING NUT', 'PN: SP-632-2', 'CAGE: 46384', 'NEAR SIDE']);
-check('stud 6-32 5052 .090 -> 3.5 mm drill, M63540/1-14C, MS21044C06 stack', { type: 'stud', thread: '6-32', material: '5052-H32', thk: '0.090' },
-  ['4X DRILL 3.5 MM (\u00d8.138) THRU', 'INSTALL 6-32 X .500 SELF-CLINCHING STUD', 'PN: M63540/1-14C', 'CAGE: 80205', 'NEAR SIDE FLUSH'], o => o.info.some(t => t.includes('MS21044C06')));
+check('stud 6-32 5052 .090 -> #28 drill, M63540/1-14C, MS21044C06 stack', { type: 'stud', thread: '6-32', material: '5052-H32', thk: '0.090' },
+  ['4X DRILL #28 (\u00d8.141) THRU', 'INSTALL 6-32 X .500 SELF-CLINCHING STUD', 'PN: M63540/1-14C', 'CAGE: 80205', 'NEAR SIDE FLUSH'], o => o.info.some(t => t.includes('MS21044C06')));
 check('stud 6-32 A304 .063 -> FH4-632-6', { type: 'stud', thread: '6-32', material: 'A304 (annealed)', thk: '0.063' },
-  ['4X DRILL 3.5 MM (\u00d8.138) THRU', 'INSTALL 6-32 X .375 SELF-CLINCHING STUD', 'PN: FH4-632-6', 'CAGE: 46384', 'NEAR SIDE FLUSH']);
+  ['4X DRILL #28 (\u00d8.141) THRU', 'INSTALL 6-32 X .375 SELF-CLINCHING STUD', 'PN: FH4-632-6', 'CAGE: 46384', 'NEAR SIDE FLUSH']);
 if (fail) { console.log(fail + ' failed'); process.exitCode = 1; } else console.log('all passed');
